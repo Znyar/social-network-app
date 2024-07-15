@@ -1,5 +1,6 @@
 package com.znyar.handler;
 
+import com.znyar.exception.BadRequestException;
 import com.znyar.exception.NonUniqueUserDataException;
 import com.znyar.exception.UserNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -33,7 +34,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNonUniqueUserDataException(NonUniqueUserDataException ex) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse(new HashMap<>(ex.getErrors())));
+                .body(new ErrorResponse(ex.getErrors()));
     }
 
     @ExceptionHandler(UserNotFoundException.class)
@@ -41,6 +42,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse(Map.of(ex.getSearchFieldName(), ex.getMessage())));
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(ex.getErrors()));
     }
 
 }

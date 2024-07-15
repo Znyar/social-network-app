@@ -31,7 +31,7 @@ public class UserService {
         if (isPhoneNumberExists) {
             errors.put("phoneNumber", "Phone number " + request.getPhoneNumber() + " already exists");
         }
-        if (errors.values().size() > 0) {
+        if (!errors.isEmpty()) {
             throw new NonUniqueUserDataException(errors);
         }
         return mapper.toUserResponse(
@@ -44,7 +44,7 @@ public class UserService {
     public UserResponse getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .map(mapper::toUserResponse)
-                .orElseThrow(() -> new UserNotFoundException( "email", "User not found with email " + email));
+                .orElseThrow(() -> new UserNotFoundException("email", "User not found with email " + email));
     }
 
     //TODO update user with password
