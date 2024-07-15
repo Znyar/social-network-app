@@ -1,0 +1,11 @@
+spring:
+  data:
+    mongodb:
+      username: admin
+      password: admin
+      host: localhost
+      port: 27017
+      database: chat
+      authentication-database: admin
+server:
+  port: 9010

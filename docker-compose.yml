@@ -1,0 +1,35 @@
+services:
+  postgresql:
+    container_name: social-net-postgres
+    image: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      PGDATA: /data/postgres
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - 5440:5432
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+  mongo:
+    image: mongo
+    container_name: social-net-mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo:/data
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    restart: always
+
+networks:
+  microservices-net:
+    driver: bridge
+
+volumes:
+  postgres:
+  mongo:
