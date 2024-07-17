@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5440/auth
+    username: admin
+    password: admin
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    create-schemas: true
+server:
+  port: 9010
+
+application:
+  security:
+    jwt:
+      secret-key: c9CeL04TALRLKADvWuOg51H4aVazmrCdhcPrfZoC/T24xJXasMRbsPrkpcOlCmPViNNqB6ZOfHHEh5Bj1n7/0pf0xbPW7Zf245sO1bkutA+GWPssbBQO//HpyNEcJVqfNH8NZZaruF3tAnuTHUdgchilIe/0DDYtuz8UcTVdamWGkw87FkZZfiaN0Sd6B2dqPqEu6dPE8Wi7Pf+/6TBXc/wCDZ+N3dUoLEhvI6wGh8ny0L0+bSi4nRHGMGDRgW0lCDs1O47TJTigBgz38DxVgmS+djafSvCw/SoumgFUVXD3k8VMsqOb+fN2v3ciOaga1+HOlniJSMtst5dsDqCO2Q==
+      expiration: 86400000
+      refresh-token:
+        expiration: 604800000
+  config:
+    user-url: http://localhost:9000/api/v1/users

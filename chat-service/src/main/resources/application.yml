@@ -1,11 +1,5 @@
 spring:
-  data:
-    mongodb:
-      username: admin
-      password: admin
-      host: localhost
-      port: 27017
-      database: chat
-      authentication-database: admin
-server:
-  port: 9010
+  config:
+    import: optional:configserver:http://localhost:8888
+  application:
+    name: chat-service

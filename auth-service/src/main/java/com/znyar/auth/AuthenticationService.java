@@ -10,7 +10,6 @@ import com.znyar.user.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -24,7 +23,6 @@ import static org.springframework.http.HttpHeaders.*;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AuthenticationService {
 
     private final UserClient userClient;
@@ -48,7 +46,6 @@ public class AuthenticationService {
         User user = userClient.getUserByEmail(request.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "Cannot find user with e-mail " + request.getEmail()));
-        log.info("User {} found", user.getEmail());
         String jwtToken = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
         revokeAllUserTokens(user);

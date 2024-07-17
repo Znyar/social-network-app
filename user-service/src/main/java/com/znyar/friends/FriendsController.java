@@ -41,6 +41,7 @@ public class FriendsController {
             @RequestParam("to-user-id") Long toUserId
     ) {
         //TODO implement
+        return null;
     }
 
 }

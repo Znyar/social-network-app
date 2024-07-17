@@ -57,4 +57,5 @@ public class UserClient {
             throw new UserServiceProcessingException("An error occurred while creating the user: " + responseEntity.getStatusCode());
         }
     }
+
 }
