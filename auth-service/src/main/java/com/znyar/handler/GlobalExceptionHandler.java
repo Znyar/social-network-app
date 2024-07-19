@@ -2,6 +2,7 @@ package com.znyar.handler;
 
 import com.znyar.exception.NoValidTokenFoundException;
 import com.znyar.exception.UserServiceProcessingException;
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -33,7 +34,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoValidTokenFoundException.class)
     public ResponseEntity<String> handleNoValidTokenFoundException(NoValidTokenFoundException ex) {
         return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .status(HttpStatus.FORBIDDEN)
+                .body(ex.getMessage());
+    }
+
+    @ExceptionHandler(SignatureException.class)
+    public ResponseEntity<String> handleSignatureException(SignatureException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
                 .body(ex.getMessage());
     }
 

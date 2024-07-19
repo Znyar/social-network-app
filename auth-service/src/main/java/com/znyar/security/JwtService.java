@@ -2,6 +2,7 @@ package com.znyar.security;
 
 import com.znyar.security.token.TokenRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -86,10 +87,12 @@ public class JwtService {
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
-        } catch (Exception e) {
-            updateTokenStatus(token, false);
+        } catch (ExpiredJwtException e) {
+            updateTokenStatus(token, true);
         }
-        return null;
+        return Jwts.claims()
+                .empty()
+                .build();
     }
 
     private SecretKey getSigningKey() {

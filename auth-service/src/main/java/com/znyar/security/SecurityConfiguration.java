@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 
+import static jakarta.servlet.http.HttpServletResponse.*;
 import static org.springframework.security.config.http.SessionCreationPolicy.*;
 
 @Configuration
@@ -32,7 +33,9 @@ public class SecurityConfiguration {
                 .authenticationProvider(authenticationProvider)
                 .logout(logout -> logout
                         .logoutUrl("/api/v1/auth/logout")
-                        .addLogoutHandler(logoutHandler))
+                        .addLogoutHandler(logoutHandler)
+                        .logoutSuccessHandler((request, response, authentication) ->
+                            response.setStatus(SC_ACCEPTED)))
                 .build();
     }
 

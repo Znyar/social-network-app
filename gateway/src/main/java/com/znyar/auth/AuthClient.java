@@ -22,13 +22,13 @@ public class AuthClient {
     @Value("${application.config.auth-url}")
     private String authUrl;
 
-    public boolean isTokenValid(String token) {
+    public boolean isTokenValid(String authHeader) {
         HttpHeaders headers = new HttpHeaders();
-        headers.set(CONTENT_TYPE, APPLICATION_JSON_VALUE);
-        HttpEntity<String> requestEntity = new HttpEntity<>(token, headers);
+        headers.set(HttpHeaders.AUTHORIZATION, authHeader);
+        HttpEntity<Void> requestEntity = new HttpEntity<>(null, headers);
         ParameterizedTypeReference<Boolean> responseType = new ParameterizedTypeReference<>() {};
         ResponseEntity<Boolean> responseEntity = restTemplate.exchange(
-                authUrl + "/validate-token?token=" + token,
+                authUrl + "/validate-token",
                 GET,
                 requestEntity,
                 responseType

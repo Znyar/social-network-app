@@ -102,22 +102,27 @@ public class AuthenticationService {
                         .refreshToken(refreshToken)
                         .build();
                 new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
-                return;
             }
         }
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     }
 
-    public boolean validateToken(String token) {
-        final String userEmail = jwtService.extractUsername(token);
-        User user = userClient.getUserByEmail(userEmail)
-                .orElseThrow(() -> new UsernameNotFoundException(
-                        "Cannot find user with e-mail " + userEmail
-                ));
-        String storedValidToken = tokenRepository.findTokenByUserIdAndExpiredIsFalseAndRevokedIsFalse(user.getId())
-                .map(Token::getToken)
-                .orElseThrow(() -> new NoValidTokenFoundException("No valid token found"));
-        return jwtService.isTokenValid(token, storedValidToken);
+    public boolean validateToken(HttpServletRequest request) {
+        final String authHeader = request.getHeader(AUTHORIZATION);
+        final String token;
+        final String userEmail;
+        token = authHeader.substring(7);
+        userEmail = jwtService.extractUsername(token);
+        if (userEmail!= null) {
+            User user = userClient.getUserByEmail(userEmail)
+                    .orElseThrow(() -> new UsernameNotFoundException(
+                            "Cannot find user with e-mail " + userEmail
+                    ));
+            String storedValidToken = tokenRepository.findTokenByUserIdAndExpiredIsFalseAndRevokedIsFalse(user.getId())
+                    .map(Token::getToken)
+                    .orElseThrow(() -> new NoValidTokenFoundException("No valid token found"));
+            return jwtService.isTokenValid(token, storedValidToken);
+        }
+        return false;
     }
 
 }

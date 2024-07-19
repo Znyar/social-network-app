@@ -43,9 +43,9 @@ public class AuthenticationController {
 
     @GetMapping("/validate-token")
     public ResponseEntity<Boolean> validateToken(
-            @RequestParam("token") String token
+            HttpServletRequest request
     ) {
-        return ResponseEntity.ok(service.validateToken(token));
+        return ResponseEntity.ok(service.validateToken(request));
     }
 
 }
