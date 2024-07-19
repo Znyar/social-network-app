@@ -2,6 +2,8 @@ package com.znyar.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.znyar.exception.NoValidTokenFoundException;
+import com.znyar.exception.UserNotFoundException;
+import com.znyar.security.CustomBCryptPasswordEncoder;
 import com.znyar.security.JwtService;
 import com.znyar.security.token.Token;
 import com.znyar.security.token.TokenRepository;
@@ -11,10 +13,6 @@ import com.znyar.user.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -27,9 +25,8 @@ public class AuthenticationService {
 
     private final UserClient userClient;
     private final JwtService jwtService;
-    private final AuthenticationManager authenticationManager;
     private final TokenRepository tokenRepository;
-    private final PasswordEncoder encoder;
+    private final CustomBCryptPasswordEncoder encoder;
 
     public void register(RegistrationRequest request) {
         request.setPassword(encoder.encode(request.getPassword()));
@@ -37,15 +34,12 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
         User user = userClient.getUserByEmail(request.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException(
+                .orElseThrow(() -> new UserNotFoundException(
                         "Cannot find user with e-mail " + request.getEmail()));
+        if (!encoder.matches(request.getPassword(), user.getPassword())) {
+            throw new SecurityException("Invalid credentials");
+        }
         String jwtToken = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
         revokeAllUserTokens(user);
@@ -83,14 +77,11 @@ public class AuthenticationService {
         final String authHeader = request.getHeader(AUTHORIZATION);
         final String refreshToken;
         final String userEmail;
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return;
-        }
         refreshToken = authHeader.substring(7);
         userEmail = jwtService.extractUsername(refreshToken);
         if (userEmail != null) {
             User user = userClient.getUserByEmail(userEmail)
-                    .orElseThrow(() -> new UsernameNotFoundException(
+                    .orElseThrow(() -> new UserNotFoundException(
                             "Cannot find user with e-mail " + userEmail
                     ));
             if (jwtService.isTokenNonExpired(refreshToken)) {
@@ -114,7 +105,7 @@ public class AuthenticationService {
         userEmail = jwtService.extractUsername(token);
         if (userEmail!= null) {
             User user = userClient.getUserByEmail(userEmail)
-                    .orElseThrow(() -> new UsernameNotFoundException(
+                    .orElseThrow(() -> new UserNotFoundException(
                             "Cannot find user with e-mail " + userEmail
                     ));
             String storedValidToken = tokenRepository.findTokenByUserIdAndExpiredIsFalseAndRevokedIsFalse(user.getId())
@@ -123,6 +114,24 @@ public class AuthenticationService {
             return jwtService.isTokenValid(token, storedValidToken);
         }
         return false;
+    }
+
+    public void logout(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        final String authHeader = request.getHeader(AUTHORIZATION);
+        final String jwt;
+        jwt = authHeader.substring(7);
+        tokenRepository.findByToken(jwt)
+                .ifPresentOrElse(token -> {
+                    token.setExpired(true);
+                    token.setRevoked(true);
+                    tokenRepository.save(token);
+                }, () -> {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    throw new NoValidTokenFoundException("Token not found");
+                });
     }
 
 }

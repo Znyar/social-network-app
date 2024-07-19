@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -33,7 +31,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(service.authenticate(request));
     }
 
-    @PostMapping(value = "/refresh-token", produces = APPLICATION_JSON_VALUE)
+    @PostMapping("/refresh-token")
     public void refreshToken(
             HttpServletRequest request,
             HttpServletResponse response
@@ -42,10 +40,16 @@ public class AuthenticationController {
     }
 
     @GetMapping("/validate-token")
-    public ResponseEntity<Boolean> validateToken(
-            HttpServletRequest request
-    ) {
+    public ResponseEntity<Boolean> validateToken(HttpServletRequest request) {
         return ResponseEntity.ok(service.validateToken(request));
+    }
+
+    @PostMapping("/logout")
+    public void logout(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        service.logout(request, response);
     }
 
 }
