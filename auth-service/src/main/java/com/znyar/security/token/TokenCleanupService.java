@@ -16,7 +16,7 @@ public class TokenCleanupService {
     @Scheduled(cron = "0 0 0 * * *")
     @Transactional
     public void removeRevokedTokens() {
-        List<Token> revokedTokens = tokenRepository.findAllByRevokedTrue();
+        List<Token> revokedTokens = tokenRepository.findAllByRevokedIsTrue();
         tokenRepository.deleteAll(revokedTokens);
     }
 

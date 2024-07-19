@@ -5,12 +5,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -34,12 +33,19 @@ public class AuthenticationController {
         return ResponseEntity.ok(service.authenticate(request));
     }
 
-    @PostMapping("/refresh-token")
+    @PostMapping(value = "/refresh-token", produces = APPLICATION_JSON_VALUE)
     public void refreshToken(
             HttpServletRequest request,
             HttpServletResponse response
     ) throws IOException {
         service.refreshToken(request, response);
+    }
+
+    @GetMapping("/validate-token")
+    public ResponseEntity<Boolean> validateToken(
+            @RequestParam("token") String token
+    ) {
+        return ResponseEntity.ok(service.validateToken(token));
     }
 
 }

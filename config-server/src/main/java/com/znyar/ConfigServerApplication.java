@@ -1,4 +1,4 @@
-package com.znyar.config_server;
+package com.znyar;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

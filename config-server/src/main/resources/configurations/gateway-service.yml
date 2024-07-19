@@ -11,7 +11,16 @@ spring:
           uri: lb:http://USER-SERVICE
           predicates:
             - Path=/api/v1/users/**
+          filters:
+            - AuthenticationFilter
+
         - id: auth-service
           uri: lb:http://AUTH-SERVICE
           predicates:
             - Path=/api/v1/auth/**
+          filters:
+            - AuthenticationFilter
+
+application:
+  config:
+    auth-url: http://localhost:9010/api/v1/auth

@@ -1,5 +1,6 @@
 package com.znyar.handler;
 
+import com.znyar.exception.NoValidTokenFoundException;
 import com.znyar.exception.UserServiceProcessingException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserServiceProcessingException.class)
     public ResponseEntity<String> handleUserServiceProcessingException(UserServiceProcessingException ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ex.getMessage());
+    }
+
+    @ExceptionHandler(NoValidTokenFoundException.class)
+    public ResponseEntity<String> handleNoValidTokenFoundException(NoValidTokenFoundException ex) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ex.getMessage());

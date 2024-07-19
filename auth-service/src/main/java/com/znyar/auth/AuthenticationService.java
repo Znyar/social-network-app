@@ -1,6 +1,7 @@
 package com.znyar.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.znyar.exception.NoValidTokenFoundException;
 import com.znyar.security.JwtService;
 import com.znyar.security.token.Token;
 import com.znyar.security.token.TokenRepository;
@@ -17,7 +18,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.List;
 
 import static org.springframework.http.HttpHeaders.*;
 
@@ -57,15 +57,12 @@ public class AuthenticationService {
     }
 
     private void revokeAllUserTokens(User user) {
-        List<Token> validUserTokens = tokenRepository.findAllValidTokensByUser(user.getId());
-        if (validUserTokens.isEmpty()) {
-            return;
-        }
-        validUserTokens.forEach(t -> {
-            t.setRevoked(true);
-            t.setExpired(true);
-        });
-        tokenRepository.saveAll(validUserTokens);
+        tokenRepository.findTokenByUserIdAndExpiredIsFalseAndRevokedIsFalse(user.getId())
+                .ifPresent(t -> {
+                    t.setRevoked(true);
+                    t.setExpired(true);
+                    tokenRepository.save(t);
+                });
     }
 
     private void saveUserToken(User user, String jwtToken) {
@@ -96,7 +93,7 @@ public class AuthenticationService {
                     .orElseThrow(() -> new UsernameNotFoundException(
                             "Cannot find user with e-mail " + userEmail
                     ));
-            if (jwtService.isTokenValid(refreshToken, user)) {
+            if (jwtService.isTokenNonExpired(refreshToken)) {
                 String accessToken = jwtService.generateToken(user);
                 revokeAllUserTokens(user);
                 saveUserToken(user, accessToken);
@@ -105,8 +102,22 @@ public class AuthenticationService {
                         .refreshToken(refreshToken)
                         .build();
                 new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
+                return;
             }
         }
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    }
+
+    public boolean validateToken(String token) {
+        final String userEmail = jwtService.extractUsername(token);
+        User user = userClient.getUserByEmail(userEmail)
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "Cannot find user with e-mail " + userEmail
+                ));
+        String storedValidToken = tokenRepository.findTokenByUserIdAndExpiredIsFalseAndRevokedIsFalse(user.getId())
+                .map(Token::getToken)
+                .orElseThrow(() -> new NoValidTokenFoundException("No valid token found"));
+        return jwtService.isTokenValid(token, storedValidToken);
     }
 
 }
