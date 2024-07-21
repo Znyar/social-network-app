@@ -17,26 +17,17 @@ public class FriendsRepository {
         jdbcTemplate.update(sql, fromUserId, toUserId);
     }
 
-    public void acceptFriendship(Long fromUserId, Long toUserId) {
-        String sql = "UPDATE user_schema.t_friends SET c_is_accepted = true WHERE user_id = ? AND friend_id = ?";
-        jdbcTemplate.update(sql, toUserId, fromUserId);
-    }
-
-    public List<Long> getUserFriendsIds(Long userId) {
-        String sql = "SELECT friend_id FROM user_schema.t_friends WHERE user_id = ? AND c_is_accepted = true " +
-                "UNION " +
-                "SELECT user_id FROM user_schema.t_friends WHERE friend_id = ? AND c_is_accepted = true";
-        return jdbcTemplate.queryForList(sql, Long.class, userId, userId);
-    }
-    
-    public List<Long> getRequestedToUsersIds(Long userId) {
-        String sql = "SELECT friend_id FROM user_schema.t_friends WHERE user_id = ? AND c_is_accepted = false";
-        return jdbcTemplate.queryForList(sql, Long.class, userId);
-    }
-
-    public List<Long> getRequestedFromUsersIds(Long userId) {
-        String sql = "SELECT user_id FROM user_schema.t_friends WHERE friend_id = ? AND c_is_accepted = false";
-        return jdbcTemplate.queryForList(sql, Long.class, userId);
+    public List<Friendship> getAllFriends(Long userId) {
+        String sql = "SELECT user_id, friend_id, c_is_accepted " +
+                "FROM user_schema.t_friends " +
+                "WHERE user_id = ? OR friend_id = ?";
+        return jdbcTemplate.query(sql,
+                (rs, rowNum) -> new Friendship(
+                        rs.getLong("user_id"),
+                        rs.getLong("friend_id"),
+                        rs.getBoolean("c_is_accepted")),
+                userId, userId
+        );
     }
 
     public boolean isRequestAccepted(Long fromUserId, Long toUserId) {
@@ -51,6 +42,26 @@ public class FriendsRepository {
                 "WHERE user_id = ? AND friend_id = ? AND c_is_accepted = false";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, fromUserId, toUserId);
         return count != null && count > 0;
+    }
+
+    public void deleteAllByUserId(Long id) {
+        String sql = "DELETE FROM user_schema.t_friends WHERE user_id = ? OR friend_id = ?";
+        jdbcTemplate.update(sql, id, id);
+    }
+
+    public void deleteUserRequest(Long fromUserId, Long toUserId) {
+        String sql = "DELETE FROM user_schema.t_friends WHERE user_id = ? AND friend_id = ? AND c_is_accepted = false";
+        jdbcTemplate.update(sql, fromUserId, toUserId);
+    }
+
+    public void updateFriendshipStatus(Long fromUserId, Long toUserId, boolean accepted) {
+        String sql = "UPDATE user_schema.t_friends SET c_is_accepted = ? WHERE user_id = ? AND friend_id = ?";
+        jdbcTemplate.update(sql, accepted, fromUserId, toUserId);
+    }
+
+    public void swapRelationship(Long fromUserId, Long toUserId) {
+        String sql = "UPDATE user_schema.t_friends SET user_id = ?, friend_id = ? WHERE user_id = ? AND friend_id = ?";
+        jdbcTemplate.update(sql, toUserId, fromUserId, fromUserId, toUserId);
     }
 
 }

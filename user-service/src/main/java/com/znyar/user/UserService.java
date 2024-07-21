@@ -2,6 +2,7 @@ package com.znyar.user;
 
 import com.znyar.exception.NonUniqueUserDataException;
 import com.znyar.exception.UserNotFoundException;
+import com.znyar.friends.FriendsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper mapper;
+    private final FriendsRepository friendsRepository;
 
     public UserResponse getUserById(Long id) {
         return userRepository.findById(id)
@@ -47,6 +49,14 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("email", "User not found with email " + email));
     }
 
-    //TODO update user with password
+    public void deleteUser(Long id) {
+        userRepository.findById(id).ifPresentOrElse(
+                user -> {
+                    userRepository.delete(user);
+                    friendsRepository.deleteAllByUserId(user.getId());
+                },
+                () -> {throw new UserNotFoundException("id", "User not found with id " + id);}
+        );
+    }
 
 }

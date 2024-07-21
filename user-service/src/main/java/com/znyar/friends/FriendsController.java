@@ -40,8 +40,8 @@ public class FriendsController {
             @PathVariable("user-id") Long fromUserId,
             @RequestParam("to-user-id") Long toUserId
     ) {
-        //TODO implement
-        return null;
+        friendsService.deleteFriendship(fromUserId, toUserId);
+        return ResponseEntity.accepted().build();
     }
 
 }

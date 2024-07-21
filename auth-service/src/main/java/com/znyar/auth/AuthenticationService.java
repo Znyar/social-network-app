@@ -113,6 +113,7 @@ public class AuthenticationService {
                     .orElseThrow(() -> new NoValidTokenFoundException("No valid token found"));
             return jwtService.isTokenValid(token, storedValidToken);
         }
+        tokenRepository.deleteByToken(token);
         return false;
     }
 

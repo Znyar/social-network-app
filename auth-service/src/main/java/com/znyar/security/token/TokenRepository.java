@@ -13,6 +13,6 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
 
     List<Token> findAllByRevokedIsTrue();
 
-    List<Token> findAllByUserId(Long userId);
+    void deleteByToken(String token);
 
 }
