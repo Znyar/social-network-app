@@ -29,7 +29,6 @@ public class AuthenticationService {
     private final CustomBCryptPasswordEncoder encoder;
 
     public void register(RegistrationRequest request) {
-        request.setPassword(encoder.encode(request.getPassword()));
         userClient.saveUser(request);
     }
 
@@ -103,11 +102,9 @@ public class AuthenticationService {
         final String userEmail;
         token = authHeader.substring(7);
         userEmail = jwtService.extractUsername(token);
-        if (userEmail!= null) {
+        if (userEmail != null) {
             User user = userClient.getUserByEmail(userEmail)
-                    .orElseThrow(() -> new UserNotFoundException(
-                            "Cannot find user with e-mail " + userEmail
-                    ));
+                    .orElseThrow(() -> new UserNotFoundException("Cannot find user with e-mail " + userEmail));
             String storedValidToken = tokenRepository.findTokenByUserIdAndExpiredIsFalseAndRevokedIsFalse(user.getId())
                     .map(Token::getToken)
                     .orElseThrow(() -> new NoValidTokenFoundException("No valid token found"));
@@ -133,6 +130,15 @@ public class AuthenticationService {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     throw new NoValidTokenFoundException("Token not found");
                 });
+    }
+
+    public long getCurrentUserId(HttpServletRequest request) {
+        final String authHeader = request.getHeader(AUTHORIZATION);
+        final String jwt;
+        jwt = authHeader.substring(7);
+        return tokenRepository.findByToken(jwt)
+                .map(Token::getUserId)
+                .orElseThrow(() -> new NoValidTokenFoundException("No token found"));
     }
 
 }

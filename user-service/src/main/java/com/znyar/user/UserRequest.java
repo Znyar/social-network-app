@@ -6,12 +6,12 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 
 import java.time.LocalDate;
 
 @Builder
-@Getter
+@Data
 public class UserRequest {
 
     @NotBlank(message = "First name is required")

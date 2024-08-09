@@ -5,7 +5,7 @@ spring:
       password: admin
       host: localhost
       port: 27017
-      database: chat
+      database: file
       authentication-database: admin
 server:
-  port: 9040
+  port: 9030

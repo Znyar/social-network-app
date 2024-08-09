@@ -1,10 +1,14 @@
 package com.znyar.user;
 
 import com.znyar.userinfo.UserInfo;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class UserMapper {
+
+    private final CustomBCryptPasswordEncoder encoder;
 
     public UserResponse toUserResponse(User user) {
         return UserResponse.builder()
@@ -32,8 +36,22 @@ public class UserMapper {
                         .birthDate(request.getBirthDate())
                         .address(request.getAddress())
                         .build())
-                .password(request.getPassword())
+                .password(encoder.encode(request.getPassword()))
                 .email(request.getEmail())
                 .build();
     }
+
+    public void updateUser(User user, UserRequest request) {
+        user.setPassword(encoder.encode(request.getPassword()));
+        user.setEmail(request.getEmail());
+        UserInfo userInfo = user.getUserInfo();
+        userInfo.setFirstName(request.getFirstName());
+        userInfo.setLastName(request.getLastName());
+        userInfo.setGender(request.getGender());
+        userInfo.setPhone(request.getPhoneNumber());
+        userInfo.setBirthDate(request.getBirthDate());
+        userInfo.setBio(request.getBio());
+        userInfo.setAddress(request.getAddress());
+    }
+
 }

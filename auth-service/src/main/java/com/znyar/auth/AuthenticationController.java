@@ -52,4 +52,9 @@ public class AuthenticationController {
         service.logout(request, response);
     }
 
+    @GetMapping("/current-user-id")
+    public ResponseEntity<Long> getCurrentUserId(HttpServletRequest request) {
+        return ResponseEntity.ok(service.getCurrentUserId(request));
+    }
+
 }

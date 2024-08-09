@@ -24,18 +24,7 @@ public class UserService {
     }
 
     public UserResponse createUser(UserRequest request) {
-        boolean isEmailUnique = userRepository.existsByEmail(request.getEmail());
-        boolean isPhoneNumberExists = userRepository.existsByUserInfo_Phone(request.getPhoneNumber());
-        Map<String, String> errors = new HashMap<>();
-        if (isEmailUnique) {
-            errors.put("email", "Email " + request.getEmail() + " already exists");
-        }
-        if (isPhoneNumberExists) {
-            errors.put("phoneNumber", "Phone number " + request.getPhoneNumber() + " already exists");
-        }
-        if (!errors.isEmpty()) {
-            throw new NonUniqueUserDataException(errors);
-        }
+        checkNonUniqueUserData(request, 0L);
         return mapper.toUserResponse(
                 userRepository.save(
                         mapper.toUser(request)
@@ -52,11 +41,36 @@ public class UserService {
     public void deleteUser(Long id) {
         userRepository.findById(id).ifPresentOrElse(
                 user -> {
-                    userRepository.delete(user);
                     friendsRepository.deleteAllByUserId(user.getId());
+                    userRepository.delete(user);
                 },
                 () -> {throw new UserNotFoundException("id", "User not found with id " + id);}
         );
+    }
+
+    public UserResponse updateUser(Long id, UserRequest request) {
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("id", "User not found with id " + id));
+        checkNonUniqueUserData(request, id);
+        mapper.updateUser(user, request);
+        return mapper.toUserResponse(userRepository.save(user));
+    }
+
+    private void checkNonUniqueUserData(
+            UserRequest request,
+            Long id
+    ) {
+        boolean isEmailExists = userRepository.existsByEmailAndIdIsNot(request.getEmail(), id);
+        boolean isPhoneNumberExists = userRepository.existsByUserInfo_PhoneAndIdIsNot(request.getPhoneNumber(), id);
+        Map<String, String> errors = new HashMap<>();
+        if (isEmailExists) {
+            errors.put("email", "Email " + request.getEmail() + " already exists");
+        }
+        if (isPhoneNumberExists) {
+            errors.put("phoneNumber", "Phone number " + request.getPhoneNumber() + " already exists");
+        }
+        if (!errors.isEmpty()) {
+            throw new NonUniqueUserDataException(errors);
+        }
     }
 
 }
